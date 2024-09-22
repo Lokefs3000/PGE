@@ -1,0 +1,9 @@
+# Rules for definitions
+#   Modules:
+#     b1: Vertex support
+#     b2: Pixel support
+
+["ImGui.hlsl"]
+Modules=0b00000011
+RenderMode="Transparent"
+Input.COLOR0="UNorm4"
