@@ -1,73 +1,27 @@
 #pragma once
 
 #include <vector>
+#include <variant>
+
+#include "Common.hpp"
 
 namespace pge
 {
-	enum class Blend
-	{
-		D3D12_BLEND_ZERO = 1,
-		D3D12_BLEND_ONE = 2,
-		D3D12_BLEND_SRC_COLOR = 3,
-		D3D12_BLEND_INV_SRC_COLOR = 4,
-		D3D12_BLEND_SRC_ALPHA = 5,
-		D3D12_BLEND_INV_SRC_ALPHA = 6,
-		D3D12_BLEND_DEST_ALPHA = 7,
-		D3D12_BLEND_INV_DEST_ALPHA = 8,
-		D3D12_BLEND_DEST_COLOR = 9,
-		D3D12_BLEND_INV_DEST_COLOR = 10,
-		D3D12_BLEND_SRC_ALPHA_SAT = 11,
-		D3D12_BLEND_BLEND_FACTOR = 14,
-		D3D12_BLEND_INV_BLEND_FACTOR = 15,
-		D3D12_BLEND_SRC1_COLOR = 16,
-		D3D12_BLEND_INV_SRC1_COLOR = 17,
-		D3D12_BLEND_SRC1_ALPHA = 18,
-		D3D12_BLEND_INV_SRC1_ALPHA = 19,
-		D3D12_BLEND_ALPHA_FACTOR = 20,
-		D3D12_BLEND_INV_ALPHA_FACTOR = 21
-	};
-
-	enum class BlendOperation
-	{
-		D3D12_BLEND_OP_ADD = 1,
-		D3D12_BLEND_OP_SUBTRACT = 2,
-		D3D12_BLEND_OP_REV_SUBTRACT = 3,
-		D3D12_BLEND_OP_MIN = 4,
-		D3D12_BLEND_OP_MAX = 5
-
-	};
-
-	enum class LogicOperation
-	{
-		D3D12_LOGIC_OP_CLEAR = 0,
-		D3D12_LOGIC_OP_SET,
-		D3D12_LOGIC_OP_COPY,
-		D3D12_LOGIC_OP_COPY_INVERTED,
-		D3D12_LOGIC_OP_NOOP,
-		D3D12_LOGIC_OP_INVERT,
-		D3D12_LOGIC_OP_AND,
-		D3D12_LOGIC_OP_NAND,
-		D3D12_LOGIC_OP_OR,
-		D3D12_LOGIC_OP_NOR,
-		D3D12_LOGIC_OP_XOR,
-		D3D12_LOGIC_OP_EQUIV,
-		D3D12_LOGIC_OP_AND_REVERSE,
-		D3D12_LOGIC_OP_AND_INVERTED,
-		D3D12_LOGIC_OP_OR_REVERSE,
-		D3D12_LOGIC_OP_OR_INVERTED
-	};
-
 	struct RenderTargetBlendDescription
 	{
 		bool BlendEnable;
 		bool LogicOpEnable;
+
 		Blend SrcBlend;
 		Blend DestBlend;
 		BlendOperation BlendOp;
+
 		Blend SrcBlendAlpha;
 		Blend DestBlendAlpha;
 		BlendOperation BlendOpAlpha;
+
 		LogicOperation LogicOp;
+
 		uint8_t RenderTargetWriteMask;
 	};
 
@@ -75,247 +29,84 @@ namespace pge
 	{
 		bool AlphaToCoverage;
 		bool IndependentBlendEnable;
+
 		RenderTargetBlendDescription RenderTarget[8];
-	};
-
-	enum class FillMode
-	{
-		D3D12_FILL_MODE_WIREFRAME = 2,
-		D3D12_FILL_MODE_SOLID = 3
-	};
-
-	enum class CullMode
-	{
-		D3D12_CULL_MODE_NONE = 1,
-		D3D12_CULL_MODE_FRONT = 2,
-		D3D12_CULL_MODE_BACK = 3
 	};
 
 	struct RasterizerDescription
 	{
 		FillMode FillMode;
 		CullMode CullMode;
-		bool FrontCounterClockwise;
-		int DepthBias;
-		float DepthBiasClamp;
-		float SlopeScaledDepthBias;
-		bool DepthClipEnable;
-		bool MultisampleEnable;
-		bool AntialiasedLineEnable;
-		uint32_t ForcedSampleCount;
-	};
-
-	enum class DepthWriteMask
-	{
-		D3D12_DEPTH_WRITE_MASK_ZERO = 0,
-		D3D12_DEPTH_WRITE_MASK_ALL = 1
-	};
-
-	enum class ComparisonFunc
-	{
-		D3D12_COMPARISON_FUNC_NONE,
-		D3D12_COMPARISON_FUNC_NEVER = 1,
-		D3D12_COMPARISON_FUNC_LESS = 2,
-		D3D12_COMPARISON_FUNC_EQUAL = 3,
-		D3D12_COMPARISON_FUNC_LESS_EQUAL = 4,
-		D3D12_COMPARISON_FUNC_GREATER = 5,
-		D3D12_COMPARISON_FUNC_NOT_EQUAL = 6,
-		D3D12_COMPARISON_FUNC_GREATER_EQUAL = 7,
-		D3D12_COMPARISON_FUNC_ALWAYS = 8
-	};
-
-	enum class DepthStencilOp
-	{
-		D3D12_STENCIL_OP_KEEP = 1,
-		D3D12_STENCIL_OP_ZERO = 2,
-		D3D12_STENCIL_OP_REPLACE = 3,
-		D3D12_STENCIL_OP_INCR_SAT = 4,
-		D3D12_STENCIL_OP_DECR_SAT = 5,
-		D3D12_STENCIL_OP_INVERT = 6,
-		D3D12_STENCIL_OP_INCR = 7,
-		D3D12_STENCIL_OP_DECR = 8
 	};
 
 	struct DepthStencilOpDescription
 	{
-		DepthStencilOp StencilFailOp;
-		DepthStencilOp StencilDepthFailOp;
-		DepthStencilOp StencilPassOp;
-		ComparisonFunc StencilFunc;
+		DepthStencilOperation StencilFailOp;
+		DepthStencilOperation StencilDepthFailOp;
+		DepthStencilOperation StencilPassOp;
+		ComparisonFunction StencilFunc;
 	};
 
 	struct DepthStencilDescription
 	{
 		bool DepthEnable;
+
 		DepthWriteMask DepthWriteMask;
-		ComparisonFunc DepthFunc;
+		ComparisonFunction DepthFunc;
+
 		bool StencilEnable;
+
 		uint8_t StencilReadMask;
 		uint8_t StencilWriteMask;
+
 		DepthStencilOpDescription FrontFace;
 		DepthStencilOpDescription BackFace;
 	};
 
-	enum class Format
-	{
-		DXGI_FORMAT_UNKNOWN = 0,
-		DXGI_FORMAT_R32G32B32A32_TYPELESS = 1,
-		DXGI_FORMAT_R32G32B32A32_FLOAT = 2,
-		DXGI_FORMAT_R32G32B32A32_UINT = 3,
-		DXGI_FORMAT_R32G32B32A32_SINT = 4,
-		DXGI_FORMAT_R32G32B32_TYPELESS = 5,
-		DXGI_FORMAT_R32G32B32_FLOAT = 6,
-		DXGI_FORMAT_R32G32B32_UINT = 7,
-		DXGI_FORMAT_R32G32B32_SINT = 8,
-		DXGI_FORMAT_R16G16B16A16_TYPELESS = 9,
-		DXGI_FORMAT_R16G16B16A16_FLOAT = 10,
-		DXGI_FORMAT_R16G16B16A16_UNORM = 11,
-		DXGI_FORMAT_R16G16B16A16_UINT = 12,
-		DXGI_FORMAT_R16G16B16A16_SNORM = 13,
-		DXGI_FORMAT_R16G16B16A16_SINT = 14,
-		DXGI_FORMAT_R32G32_TYPELESS = 15,
-		DXGI_FORMAT_R32G32_FLOAT = 16,
-		DXGI_FORMAT_R32G32_UINT = 17,
-		DXGI_FORMAT_R32G32_SINT = 18,
-		DXGI_FORMAT_R32G8X24_TYPELESS = 19,
-		DXGI_FORMAT_D32_FLOAT_S8X24_UINT = 20,
-		DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS = 21,
-		DXGI_FORMAT_X32_TYPELESS_G8X24_UINT = 22,
-		DXGI_FORMAT_R10G10B10A2_TYPELESS = 23,
-		DXGI_FORMAT_R10G10B10A2_UNORM = 24,
-		DXGI_FORMAT_R10G10B10A2_UINT = 25,
-		DXGI_FORMAT_R11G11B10_FLOAT = 26,
-		DXGI_FORMAT_R8G8B8A8_TYPELESS = 27,
-		DXGI_FORMAT_R8G8B8A8_UNORM = 28,
-		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB = 29,
-		DXGI_FORMAT_R8G8B8A8_UINT = 30,
-		DXGI_FORMAT_R8G8B8A8_SNORM = 31,
-		DXGI_FORMAT_R8G8B8A8_SINT = 32,
-		DXGI_FORMAT_R16G16_TYPELESS = 33,
-		DXGI_FORMAT_R16G16_FLOAT = 34,
-		DXGI_FORMAT_R16G16_UNORM = 35,
-		DXGI_FORMAT_R16G16_UINT = 36,
-		DXGI_FORMAT_R16G16_SNORM = 37,
-		DXGI_FORMAT_R16G16_SINT = 38,
-		DXGI_FORMAT_R32_TYPELESS = 39,
-		DXGI_FORMAT_D32_FLOAT = 40,
-		DXGI_FORMAT_R32_FLOAT = 41,
-		DXGI_FORMAT_R32_UINT = 42,
-		DXGI_FORMAT_R32_SINT = 43,
-		DXGI_FORMAT_R24G8_TYPELESS = 44,
-		DXGI_FORMAT_D24_UNORM_S8_UINT = 45,
-		DXGI_FORMAT_R24_UNORM_X8_TYPELESS = 46,
-		DXGI_FORMAT_X24_TYPELESS_G8_UINT = 47,
-		DXGI_FORMAT_R8G8_TYPELESS = 48,
-		DXGI_FORMAT_R8G8_UNORM = 49,
-		DXGI_FORMAT_R8G8_UINT = 50,
-		DXGI_FORMAT_R8G8_SNORM = 51,
-		DXGI_FORMAT_R8G8_SINT = 52,
-		DXGI_FORMAT_R16_TYPELESS = 53,
-		DXGI_FORMAT_R16_FLOAT = 54,
-		DXGI_FORMAT_D16_UNORM = 55,
-		DXGI_FORMAT_R16_UNORM = 56,
-		DXGI_FORMAT_R16_UINT = 57,
-		DXGI_FORMAT_R16_SNORM = 58,
-		DXGI_FORMAT_R16_SINT = 59,
-		DXGI_FORMAT_R8_TYPELESS = 60,
-		DXGI_FORMAT_R8_UNORM = 61,
-		DXGI_FORMAT_R8_UINT = 62,
-		DXGI_FORMAT_R8_SNORM = 63,
-		DXGI_FORMAT_R8_SINT = 64,
-		DXGI_FORMAT_A8_UNORM = 65,
-		DXGI_FORMAT_R1_UNORM = 66,
-		DXGI_FORMAT_R9G9B9E5_SHAREDEXP = 67,
-		DXGI_FORMAT_R8G8_B8G8_UNORM = 68,
-		DXGI_FORMAT_G8R8_G8B8_UNORM = 69,
-		DXGI_FORMAT_BC1_TYPELESS = 70,
-		DXGI_FORMAT_BC1_UNORM = 71,
-		DXGI_FORMAT_BC1_UNORM_SRGB = 72,
-		DXGI_FORMAT_BC2_TYPELESS = 73,
-		DXGI_FORMAT_BC2_UNORM = 74,
-		DXGI_FORMAT_BC2_UNORM_SRGB = 75,
-		DXGI_FORMAT_BC3_TYPELESS = 76,
-		DXGI_FORMAT_BC3_UNORM = 77,
-		DXGI_FORMAT_BC3_UNORM_SRGB = 78,
-		DXGI_FORMAT_BC4_TYPELESS = 79,
-		DXGI_FORMAT_BC4_UNORM = 80,
-		DXGI_FORMAT_BC4_SNORM = 81,
-		DXGI_FORMAT_BC5_TYPELESS = 82,
-		DXGI_FORMAT_BC5_UNORM = 83,
-		DXGI_FORMAT_BC5_SNORM = 84,
-		DXGI_FORMAT_B5G6R5_UNORM = 85,
-		DXGI_FORMAT_B5G5R5A1_UNORM = 86,
-		DXGI_FORMAT_B8G8R8A8_UNORM = 87,
-		DXGI_FORMAT_B8G8R8X8_UNORM = 88,
-		DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM = 89,
-		DXGI_FORMAT_B8G8R8A8_TYPELESS = 90,
-		DXGI_FORMAT_B8G8R8A8_UNORM_SRGB = 91,
-		DXGI_FORMAT_B8G8R8X8_TYPELESS = 92,
-		DXGI_FORMAT_B8G8R8X8_UNORM_SRGB = 93,
-		DXGI_FORMAT_BC6H_TYPELESS = 94,
-		DXGI_FORMAT_BC6H_UF16 = 95,
-		DXGI_FORMAT_BC6H_SF16 = 96,
-		DXGI_FORMAT_BC7_TYPELESS = 97,
-		DXGI_FORMAT_BC7_UNORM = 98,
-		DXGI_FORMAT_BC7_UNORM_SRGB = 99,
-		DXGI_FORMAT_AYUV = 100,
-		DXGI_FORMAT_Y410 = 101,
-		DXGI_FORMAT_Y416 = 102,
-		DXGI_FORMAT_NV12 = 103,
-		DXGI_FORMAT_P010 = 104,
-		DXGI_FORMAT_P016 = 105,
-		DXGI_FORMAT_420_OPAQUE = 106,
-		DXGI_FORMAT_YUY2 = 107,
-		DXGI_FORMAT_Y210 = 108,
-		DXGI_FORMAT_Y216 = 109,
-		DXGI_FORMAT_NV11 = 110,
-		DXGI_FORMAT_AI44 = 111,
-		DXGI_FORMAT_IA44 = 112,
-		DXGI_FORMAT_P8 = 113,
-		DXGI_FORMAT_A8P8 = 114,
-		DXGI_FORMAT_B4G4R4A4_UNORM = 115,
-		DXGI_FORMAT_P208 = 130,
-		DXGI_FORMAT_V208 = 131,
-		DXGI_FORMAT_V408 = 132,
-		DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE,
-		DXGI_FORMAT_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE,
-		DXGI_FORMAT_FORCE_UINT = 0xffffffff
-	};
-
-	enum class InputClassification
-	{
-		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA = 0,
-		D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA = 1
-	};
-
 	struct InputElementDescription
 	{
-		const char*                     SemanticName;
-		uint32_t                       SemanticIndex;
-		Format                Format;
-		uint32_t                       InputSlot;
-		uint32_t                       AlignedByteOffset;
-		InputClassification InputSlotClass;
-		uint32_t                       InstanceDataStepRate;
+		std::string_view SemanticName;
+		uint8_t SemanticIndex;
+		ParameterSize Size;
 	};
 
-	struct InputLayoutDescription
+	struct ShaderLocalVariable
 	{
-		std::vector<InputElementDescription> InputElementDescs;
+		std::string Name;
+		ParameterSize Size;
+		SemanticId Semantic;
+		uint8_t Slot;
 	};
 
-	enum class PrimitiveTopology
+	struct ShaderValueParameter
 	{
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED = 0,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT = 1,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE = 2,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE = 3,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH = 4
-	};
+		struct TextureData
+		{
+			pge::TextureDimension Dimension;
+		};
 
-	struct SignatureDescription
-	{
-		std::vector<char> DataBlob;
+		struct SamplerStateData
+		{
+			bool IsStatic;
+
+			pge::TextureFilter Filter;
+			pge::AddressMode AddressU;
+			pge::AddressMode AddressV;
+		};
+
+		struct ConstantBufferData
+		{
+			bool IsStructured;
+			std::vector<ShaderLocalVariable> Variables;
+		};
+
+		std::string Name;
+		uint16_t Index;
+
+		ShaderValueId Id;
+		ShaderVisibility Visbility;
+
+		std::variant<TextureData, SamplerStateData, ConstantBufferData> Variants;
 	};
 
 	struct GraphicsPipelineCreateInfo
@@ -323,16 +114,13 @@ namespace pge
 		std::vector<char> VertexShader;
 		std::vector<char> PixelShader;
 
-		BlendDescription Blend;
+		RenderTargetBlendDescription Blend;
 		RasterizerDescription Rasterizer;
 		DepthStencilDescription DepthStencil;
-		InputLayoutDescription InputLayout;
-		SignatureDescription Signature;
+		std::vector<InputElementDescription> InputLayout;
+		std::vector<ShaderValueParameter> Parameters;
 
 		PrimitiveTopology PrimitiveTopologyType;
-
-		Format RTVFormats[8];
-		Format DSVFormat;
 	};
 
 	class GraphicsPipeline

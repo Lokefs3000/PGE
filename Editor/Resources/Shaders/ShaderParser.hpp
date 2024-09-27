@@ -15,10 +15,10 @@ namespace ed
 		SamplerState,
 		StaticSamplerState,
 		Texture1D,
-		Texture2D,
-		Texture3D,
 		Texture1DArray,
+		Texture2D,
 		Texture2DArray,
+		Texture3D,
 		Texture3DArray,
 
 		Float,
@@ -41,6 +41,8 @@ namespace ed
 		UInt2,
 		UInt3,
 		UInt4,
+
+		Byte4,
 
 		Struct,
 		Return,
@@ -99,9 +101,10 @@ namespace ed
 	{
 		SemanticId Semantic;
 		uint8_t Slot;
+		pge::ParameterSize Size;
 	};
 
-	enum class ValueId
+	enum class ValueId : uint8_t
 	{
 		ConstantBuffer,
 		Texture,
@@ -163,7 +166,7 @@ namespace ed
 
 	struct ShaderTags
 	{
-		std::vector<std::pair<pge::SmallString, pge::SmallString>> Values;
+		std::map<std::string, pge::SmallString> Values;
 	};
 
 	struct ShaderSourceBounds
@@ -260,5 +263,6 @@ namespace ed
 		bool PerformBuild(LocalState& state);
 	public:
 		bool ParseShader(std::vector<char>& source, ShaderParseResult& result);
+		bool ParseTags(std::vector<char>& source, ShaderTags& tags);
 	};
 }

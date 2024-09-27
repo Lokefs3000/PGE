@@ -6,9 +6,12 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <D3D12MemAlloc.h>
+#include <memory>
 
 namespace pge
 {
+	class D3D12DescriptorHeapManager;
+
 	class D3D12GraphicsDevice : public BaseRenderDevice
 	{
 	private:
@@ -23,6 +26,8 @@ namespace pge
 		URef<ID3D12CommandQueue> m_ComputeQueue;
 
 		URef<D3D12MA::Allocator> m_Allocator;
+
+		std::unique_ptr<D3D12DescriptorHeapManager> m_DescriptorHeapManager;
 	public:
 		D3D12GraphicsDevice(RenderDeviceCreateInfo&& createInfo);
 		~D3D12GraphicsDevice() override;

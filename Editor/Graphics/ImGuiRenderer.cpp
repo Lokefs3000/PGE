@@ -14,7 +14,7 @@ ed::ImGuiRenderer::ImGuiRenderer(pge::Application* app)
 {
 	m_RenderDevice = app->GetRenderDevice();
 	
-	m_DrawShader = app->GetShaderHandler()->LoadResource("ImGui.hlsl");
+	m_DrawShader = app->GetShaderHandler()->LoadResource("Hidden/ImGui");
 
 	m_VMap = nullptr;
 	m_IMap = nullptr;

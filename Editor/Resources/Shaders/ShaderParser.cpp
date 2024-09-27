@@ -1,4 +1,5 @@
 #include "ShaderParser.hpp"
+#include "ShaderParser.hpp"
 
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -48,6 +49,7 @@ const std::map<std::string_view, ed::ShaderTokenType> s_Keywords = {
     { "uint2", ed::ShaderTokenType::UInt2 },
     { "uint3", ed::ShaderTokenType::UInt3 },
     { "uint4", ed::ShaderTokenType::UInt4 },
+    { "byte4", ed::ShaderTokenType::Byte4 },
     { "struct", ed::ShaderTokenType::Struct },
     { "return", ed::ShaderTokenType::Return },
 };
@@ -62,10 +64,12 @@ const std::vector<ed::ShaderTokenType> s_ValueKeywords = {
     ed::ShaderTokenType::UInt2,
     ed::ShaderTokenType::UInt3,
     ed::ShaderTokenType::UInt4,
+    ed::ShaderTokenType::Byte4,
 };
 
 const std::vector<std::string_view> s_Semantics = {
     "POSITION",
+    "TEXCOORD",
     "TEXCOORD0",
     "TEXCOORD1",
     "TEXCOORD2",
@@ -74,6 +78,7 @@ const std::vector<std::string_view> s_Semantics = {
     "TEXCOORD5",
     "TEXCOORD6",
     "TEXCOORD7",
+    "COLOR",
     "COLOR0",
     "COLOR1",
     "COLOR2",
@@ -82,6 +87,7 @@ const std::vector<std::string_view> s_Semantics = {
     "COLOR5",
     "COLOR6",
     "COLOR7",
+    "NORMAL",
     "NORMAL0",
     "NORMAL1",
     "NORMAL2",
@@ -113,10 +119,10 @@ void ed::ShaderParser::InsertTokenAt(LocalState& state, ShaderTokenType type)
 
 void ed::ShaderParser::InsertTokenAt(LocalState& state, ShaderTokenType type, std::string_view snippet)
 {
-    state.Tokens.push_back(ShaderToken{
-       .Type = type,
-       .FloatValue = 0.0f,
-       .Snippet = snippet,
+    state.Tokens.push_back(ShaderToken {
+        .Type = type,
+        .FloatValue = 0.0f,
+        .Snippet = std::string(snippet.data(), snippet.size()),
         .Line = state.Scan_Line
         });
 }
@@ -181,7 +187,7 @@ void ed::ShaderParser::Number(LocalState& state)
     }
     else
     {
-        uint32_t v = 0.0f;
+        uint32_t v = 0;
         auto result = std::from_chars(snippet.data(), snippet.data() + snippet.size(), v);
 
         if (result.ec == std::errc::invalid_argument)
@@ -784,7 +790,7 @@ bool ed::ShaderParser::PerformBounds(LocalState& state)
                     continue;
                 }
 
-                state.Result.Tags.Values.push_back(std::make_pair(local.Snippet, value.Snippet));
+                state.Result.Tags.Values.insert(std::make_pair(local.Snippet, value.Snippet));
             }
 
             if (state.Tokens.size() < state.Current)
@@ -842,6 +848,166 @@ bool ed::ShaderParser::PerformReflect(LocalState& state)
 
         switch (token.Type)
         {
+        case ShaderTokenType::Identifier:
+        {
+            bool breakSwitch = true;
+            for (auto& pair : structIndices)
+                if (pair.first == token.Snippet)
+                {
+                    breakSwitch = false;
+                    break;
+                }
+
+            if (breakSwitch)
+                break;
+        }
+        case ShaderTokenType::Float:
+        case ShaderTokenType::Float2:
+        case ShaderTokenType::Float3:
+        case ShaderTokenType::Float4:
+        case ShaderTokenType::UInt:
+        case ShaderTokenType::UInt2:
+        case ShaderTokenType::UInt3:
+        case ShaderTokenType::UInt4:
+        {
+            if (state.Tokens[state.Current + 1].Type != ShaderTokenType::OpenBracket) break;
+
+            ShaderToken& name = state.Tokens[state.Current++];
+            if (name.Type != ShaderTokenType::Identifier)
+            {
+                logger->error("[{}]: Expected a name for function decleration!", name.Line);
+                state.ErrorRaised = true;
+                break;
+            }
+
+            if (name.Snippet != "vertex") break;
+
+            {
+                ShaderToken& check = state.Tokens[state.Current++];
+                if (check.Type != ShaderTokenType::OpenBracket)
+                {
+                    logger->error("[{}]: Expected opening bracket for function arguments!", token.Line);
+                    state.ErrorRaised = true;
+                    continue;
+                }
+            }
+
+            ShaderToken& targetValueType = state.Tokens[state.Current++];
+            if (targetValueType.Type != ShaderTokenType::Identifier)
+            {
+                logger->error("[{}]: Expected name for vertex input struct!", name.Line);
+                state.ErrorRaised = true;
+                break;
+            }
+
+            bool didFind = false;
+            for (auto& pair : structIndices)
+            {
+                if (pair.first == targetValueType.Snippet)
+                {
+                    uint32_t startToken = pair.second + 1;
+                    while (startToken < state.Tokens.size() && state.Tokens[startToken].Type != ShaderTokenType::CloseCurlyBracket)
+                    {
+                        ShaderToken& fieldType = state.Tokens[startToken++];
+                        if (!std::count(s_ValueKeywords.begin(), s_ValueKeywords.end(), fieldType.Type))
+                        {
+                            logger->error("[{}]: Expected generic value type for variable decleration! Got: \"{}\"", fieldType.Line, fieldType.Snippet.c_str());
+                            state.ErrorRaised = true;
+                            continue;
+                        }
+
+                        ShaderInputParam var{};
+                        switch (fieldType.Type)
+                        {
+                        case ShaderTokenType::UInt:
+                        case ShaderTokenType::Float: var.Size = pge::ParameterSize::Float1; break;
+                        case ShaderTokenType::UInt2:
+                        case ShaderTokenType::Float2: var.Size = pge::ParameterSize::Float2; break;
+                        case ShaderTokenType::UInt3:
+                        case ShaderTokenType::Float3: var.Size = pge::ParameterSize::Float3; break;
+                        case ShaderTokenType::UInt4:
+                        case ShaderTokenType::Float4: var.Size = pge::ParameterSize::Float4; break;
+                        case ShaderTokenType::Byte4: var.Size = pge::ParameterSize::Byte4; break;
+                        default: break;
+                        }
+
+                        ShaderToken& fieldName = state.Tokens[startToken++];
+                        if (fieldName.Type != ShaderTokenType::Identifier)
+                        {
+                            logger->error("[{}]: Invalid name for variable decleration! Expected an identifier got: \"{}\"", fieldName.Line, fieldName.Snippet.c_str());
+                            state.ErrorRaised = true;
+                            continue;
+                        }
+
+                        if (state.Tokens[startToken].Type == ShaderTokenType::Colon)
+                        {
+                            startToken++;
+
+                            ShaderToken& semanticId = state.Tokens[startToken++];
+                            std::string_view semanticIdView = std::string_view(semanticId.Snippet.data(), semanticId.Snippet.size() - (isdigit(semanticId.Snippet.back()) > 0));
+                            if (semanticId.Type != ShaderTokenType::Identifier || !std::count(s_Semantics.begin(), s_Semantics.end(), semanticIdView))
+                            {
+                                logger->error("[{}]: Expected semantic identifier for variable! Got: \"{}\"", semanticId.Line, semanticId.Snippet);
+                                state.ErrorRaised = true;
+                                continue;
+                            }
+
+                            std::string_view view = semanticId.Snippet;
+                            if (view.starts_with("POSITION"))
+                                var.Semantic = SemanticId::POSITION;
+                            else  if (view.starts_with("SV_POSITION"))
+                                var.Semantic = SemanticId::SV_POSITION;
+                            else if (view.starts_with("COLOR"))
+                                var.Semantic = SemanticId::COLOR;
+                            else if (view.starts_with("NORMAL"))
+                                var.Semantic = SemanticId::NORMAL;
+                            else if (view.starts_with("TEXCOORD"))
+                                var.Semantic = SemanticId::TEXCOORD;
+                            else if (view.starts_with("TANGENT"))
+                                var.Semantic = SemanticId::TANGENT;
+                            else if (view.starts_with("BITANGENT"))
+                                var.Semantic = SemanticId::BITANGENT;
+
+                            char last = view.back();
+                            if (isdigit(last))
+                            {
+                                auto res = std::from_chars(&last, (&last) + 1, var.Slot);
+                                if (res.ec == std::errc::invalid_argument)
+                                {
+                                    logger->error("[{}]: Invalid semantic slot identifier: \"{}\"!", semanticId.Line, last);
+                                    state.ErrorRaised = true;
+                                    continue;
+                                }
+                            }
+                        }
+
+                        {
+                            ShaderToken& check = state.Tokens[startToken++];
+                            if (check.Type != ShaderTokenType::Semicolon)
+                            {
+                                logger->error("[{}]: Expected terminator for variable definiton! Got: {}", check.Line, check.Snippet.c_str());
+                                state.ErrorRaised = true;
+                                continue;
+                            }
+                        }
+
+                        state.Result.Inputs.push_back(var);
+                    }
+
+                    didFind = true;
+                    break;
+                }
+            }
+
+            if (!didFind)
+            {
+                logger->error("[{}]: Failed to find struct for vertex input structure!");
+                state.ErrorRaised = true;
+                break;
+            }
+
+            break;
+        }
         case ShaderTokenType::Texture1D:
         case ShaderTokenType::Texture2D:
         case ShaderTokenType::Texture3D:
@@ -1202,7 +1368,7 @@ bool ed::ShaderParser::PerformReflect(LocalState& state)
                     startToken++;
 
                     ShaderToken& semanticId = state.Tokens[startToken++];
-                    if (semanticId.Type != ShaderTokenType::Identifier || std::count(s_Semantics.begin(), s_Semantics.end(), (std::string_view)semanticId.Snippet))
+                    if (semanticId.Type != ShaderTokenType::Identifier || !std::count(s_Semantics.begin(), s_Semantics.end(), (std::string_view)semanticId.Snippet))
                     {
                         logger->error("[{}]: Expected semantic identifier for variable! Got: \"{}\"", token.Line, (uint8_t)semanticId.Type);
                         state.ErrorRaised = true;
@@ -1399,7 +1565,7 @@ bool ed::ShaderParser::PerformBuild(LocalState& state)
             builder << "    uint " << val.Name.c_str() << "_INDEX;\n";
         }
 
-        builder << "}\n\nConstantBuffer<GLOBAL_RESOURCES> RESOURCES : register(b0);\n\n";
+        builder << "};\n\nConstantBuffer<GLOBAL_RESOURCES> RESOURCES : register(b0);\n\n";
     }
 
     while (state.Current < state.Result.Bounds.End)
@@ -1433,6 +1599,7 @@ bool ed::ShaderParser::PerformBuild(LocalState& state)
         case ShaderTokenType::UInt2:
         case ShaderTokenType::UInt3:
         case ShaderTokenType::UInt4:
+        case ShaderTokenType::Byte4:
         case ShaderTokenType::Identifier: 
         {
             auto find = std::find_if(functions.begin(), functions.end(), [&](ShaderFunctionDefinition& compare) { return compare.LocalStart == state.Current; });
@@ -1442,10 +1609,13 @@ bool ed::ShaderParser::PerformBuild(LocalState& state)
                 enteringType = (state.Tokens[state.Current].Snippet == "pixel") ? ShaderVisibilityFlag::Pixel : ShaderVisibilityFlag::Vertex;
             }
 
-            builder << token.Snippet.c_str() << " ";
+            if (token.Snippet == "byte4")
+                builder << "float4 ";
+            else
+                builder << token.Snippet.c_str() << " ";
             break;
         }
-        case ShaderTokenType::Number: builder << token.FloatValue << "f "; break;
+        case ShaderTokenType::Number: builder << fmt::format("{:f}", token.FloatValue) << "f "; break;
         case ShaderTokenType::Integral: builder << token.UIntValue; break;
 
         case ShaderTokenType::Colon: builder.write(":", 1); break;
@@ -1513,7 +1683,7 @@ bool ed::ShaderParser::PerformBuild(LocalState& state)
                 }
 
                 enteringFunction = false;
-                enteringType == ShaderVisibilityFlag::All;
+                enteringType = ShaderVisibilityFlag::All;
             }
 
             break;
@@ -1590,5 +1760,17 @@ bool ed::ShaderParser::ParseShader(std::vector<char>& source, ShaderParseResult&
         return false;
     }
 
+    return true;
+}
+
+bool ed::ShaderParser::ParseTags(std::vector<char>& source, ShaderTags& tags)
+{
+    ShaderParseResult result{};
+    LocalState state{ .Result = result,.Source = source };
+
+    if (!PerformScan(state)) return false;
+    if (!PerformBounds(state)) return false;
+
+    tags.Values = result.Tags.Values;
     return true;
 }

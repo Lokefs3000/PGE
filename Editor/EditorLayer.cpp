@@ -10,7 +10,7 @@
 
 #include <Graphics/Shaders/ShaderHandler.hpp>
 
-#include "Resources/ODShaderPackage.hpp"
+#include "Resources/Shaders/ODShaderPackage.hpp"
 
 #include "Graphics/ImGuiRenderer.hpp"
 

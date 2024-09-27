@@ -225,6 +225,14 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="RenderHardware\D3D12\D3D12DescriptorHeap.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="RenderHardware\D3D12\D3D12DescriptorHeapMananager.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="RenderHardware\D3D12\D3D12DeviceBuffer.hpp">
       <SubType>
       </SubType>
@@ -234,6 +242,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="RenderHardware\D3D12\D3D12RenderDevice.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="RenderHardware\D3D12\D3D12SignatureContainer.hpp">
       <SubType>
       </SubType>
     </ClInclude>
@@ -285,6 +297,14 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="Types\Stopwatch.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Utility\MathUtility.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Windowing\Window.hpp" />
     <ClInclude Include="Windowing\WindowHandler.hpp" />
   </ItemGroup>
@@ -305,9 +325,12 @@
     <ClCompile Include="RenderHardware\BaseRenderDevice.cpp" />
     <ClCompile Include="RenderHardware\CommandList.cpp" />
     <ClCompile Include="RenderHardware\D3D12\D3D12CommandList.cpp" />
+    <ClCompile Include="RenderHardware\D3D12\D3D12DescriptorHeap.cpp" />
+    <ClCompile Include="RenderHardware\D3D12\D3D12DescriptorHeapMananager.cpp" />
     <ClCompile Include="RenderHardware\D3D12\D3D12DeviceBuffer.cpp" />
     <ClCompile Include="RenderHardware\D3D12\D3D12GraphicsPipeline.cpp" />
     <ClCompile Include="RenderHardware\D3D12\D3D12RenderDevice.cpp" />
+    <ClCompile Include="RenderHardware\D3D12\D3D12SignatureContainer.cpp" />
     <ClCompile Include="RenderHardware\D3D12\D3D12SwapChain.cpp" />
     <ClCompile Include="RenderHardware\D3D12\D3D12Utility.cpp" />
     <ClCompile Include="RenderHardware\DeviceBuffer.cpp" />
@@ -317,6 +340,8 @@
     <ClCompile Include="Resources\ShaderResource.cpp" />
     <ClCompile Include="Types\SmallString.cpp" />
     <ClCompile Include="Utility\FileUtility.cpp" />
+    <ClCompile Include="Types\Stopwatch.cpp" />
+    <ClCompile Include="Utility\MathUtility.cpp" />
     <ClCompile Include="Windowing\Window.cpp" />
     <ClCompile Include="Windowing\WindowHandler.cpp" />
   </ItemGroup>

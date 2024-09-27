@@ -1,6 +1,9 @@
 Tags={
     RenderMode="Transparent"
     RenderFace="Both"
+    Location="Hidden/ImGui"
+    Depth="Disabled"
+    Cull="None"
 }
 ShaderSource={
     struct VertexConstantBuffer
@@ -11,7 +14,7 @@ ShaderSource={
     struct VS_INPUT
     {
         float2 pos : POSITION;  
-        float4 col : COLOR0;
+        byte4 col : COLOR0;
         float2 uv  : TEXCOORD0;
     };
 
